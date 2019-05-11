@@ -11,7 +11,9 @@ public class Main {
 			if(userOption == 1) {
 				System.out.println("Type in any username: ");
 				String user = sc.nextLine();
-				generateEmail(user);
+				String generatedEmail = generateEmail(user);
+				System.out.println(generatedEmail);
+				
 			}else if (userOption == 2) {
 				System.out.println("Creating password");
 				generatePass();
@@ -35,9 +37,15 @@ public class Main {
 
 
 
-
-	private static void generateEmail(String user) {
-		
+	/*Generates a new user email, appending four random digits to the user's username*/
+	private static String generateEmail(String user) {
+		StringBuilder userEmail = new StringBuilder();
+		userEmail.append(user);
+		for(int i=0; i<4; i++) {
+			int rand = (int) (Math.random() * 10);
+			userEmail.append(rand);
+		}
+		return new String (userEmail);
 		
 	}
 	
