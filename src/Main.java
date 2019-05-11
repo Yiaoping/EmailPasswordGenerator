@@ -106,8 +106,7 @@ public class Main {
 
 	
 	private static String[] generateEmailPassword(String userWithPass, String domainName, int pwLength) {
-		
-		
+
 		String emailPassword = generateEmail(userWithPass, domainName);
 		String passwordEmail = generatePass(pwLength);
 		
