@@ -7,7 +7,10 @@ import java.util.Properties;
 public class DatabaseHelper {
 	
 	public static void main(String args[]) {
-		createTable();
+		String email = "testemail";
+		String pw = "testpassword";
+		String purpose = "testpurpose";
+		delete(pw);
 	}
 	
 	private static String tableName = "accounts";
@@ -17,7 +20,7 @@ public class DatabaseHelper {
 			Connection connection = getConnection();
 			PreparedStatement createTable = connection.prepareStatement("CREATE TABLE IF NOT EXISTS "+tableName+"(id INT NOT NULL AUTO_INCREMENT, email VARCHAR(50), password VARCHAR(16), purpose VARCHAR(255), PRIMARY KEY(id));");
 			createTable.execute();	
-			System.out.println("Created table");
+			System.out.println("Completed");
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
@@ -27,7 +30,7 @@ public class DatabaseHelper {
 	public static Connection getConnection() throws Exception {
 		String info[] = getProperties();
 		String driver = "com.mysql.cj.jdbc.Driver";
-		String url = "jdbc:mysql://localhost:3306/supplements";
+		String url = "jdbc:mysql://localhost:3306/generator";
 		String username = info[0];
 		String password = info[1];
 		Class.forName(driver).newInstance();
@@ -37,16 +40,50 @@ public class DatabaseHelper {
 		return connection;
 	}
 	
+	public static void insertEmailAndPass(String email, String password, String purpose) {
+		try {	
+			Connection connection = getConnection();																						//'email', 'password', 'purpose';			
+			PreparedStatement insertBoth = connection.prepareStatement("INSERT INTO " + tableName + " (email, password, purpose) VALUES ('" + email + "', '" + password + "', '" + purpose + "');"); 
+			int inserted = insertBoth.executeUpdate();
+			System.out.println("Inserted email and password: " + inserted + " rows");
+		
+		}catch (Exception e) {
+			e.printStackTrace();
+		}
+	}
 	
-
-	public static void insertEmail(String email) {
+	public static void insertPassword(String password, String purpose) {
 		try {
 			Connection connection = getConnection();
-			PreparedStatement insertOneEmail = connection.prepareStatement("INSERT INTO " + tableName + " " + email);
+			PreparedStatement insertOnePassword = connection.prepareStatement("INSERT INTO "+ tableName + " (password, purpose) VALUES ('" +password + "', '" + purpose + "');");
+			int inserted = insertOnePassword.executeUpdate();
+			System.out.println("Inserted password: " + inserted + " row(s)");
+		}catch (Exception e) {
+			e.printStackTrace();
+		}
+	}
+	
+
+	public static void insertEmail(String email, String purpose) {
+		try {
+			Connection connection = getConnection();
+			PreparedStatement insertOneEmail = connection.prepareStatement("INSERT INTO " + tableName + " (email, purpose) VALUES ('" + email + "', '" + purpose + "');");
 			int inserted = insertOneEmail.executeUpdate();
-			System.out.println("Inserted " + inserted + " row(s)");
+			System.out.println("Inserted email: " + inserted + " row(s)");
 		}catch (Exception e) {
 			System.out.println("Unable to insert into table");
+			e.printStackTrace();
+		}
+	}
+	
+	//manually edit
+	public static void delete(String id) {
+		try {
+			Connection connection = getConnection();
+			PreparedStatement deleteItem = connection.prepareStatement("DELETE FROM " + tableName + " WHERE purpose='testpurpose'");
+			int deleted = deleteItem.executeUpdate();
+			System.out.println("Deleted: " + deleted + " row(s)" );
+		}catch (Exception e) {
 			e.printStackTrace();
 		}
 	}
