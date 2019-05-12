@@ -6,11 +6,8 @@ import java.util.Properties;
 
 public class DatabaseHelper {
 	
-	public static void main(String args[]) {
-		String email = "testemail";
-		String pw = "testpassword";
-		String purpose = "testpurpose";
-		delete(pw);
+	public static void main (String args[]) {
+		delete();
 	}
 	
 	private static String tableName = "accounts";
@@ -40,7 +37,7 @@ public class DatabaseHelper {
 		return connection;
 	}
 	
-	public static void insertEmailAndPass(String email, String password, String purpose) {
+	public void insertEmailAndPass(String email, String password, String purpose) {
 		try {	
 			Connection connection = getConnection();																						//'email', 'password', 'purpose';			
 			PreparedStatement insertBoth = connection.prepareStatement("INSERT INTO " + tableName + " (email, password, purpose) VALUES ('" + email + "', '" + password + "', '" + purpose + "');"); 
@@ -52,7 +49,7 @@ public class DatabaseHelper {
 		}
 	}
 	
-	public static void insertPassword(String password, String purpose) {
+	public void insertPassword(String password, String purpose) {
 		try {
 			Connection connection = getConnection();
 			PreparedStatement insertOnePassword = connection.prepareStatement("INSERT INTO "+ tableName + " (password, purpose) VALUES ('" +password + "', '" + purpose + "');");
@@ -64,7 +61,7 @@ public class DatabaseHelper {
 	}
 	
 
-	public static void insertEmail(String email, String purpose) {
+	public void insertEmail(String email, String purpose) {
 		try {
 			Connection connection = getConnection();
 			PreparedStatement insertOneEmail = connection.prepareStatement("INSERT INTO " + tableName + " (email, purpose) VALUES ('" + email + "', '" + purpose + "');");
@@ -76,11 +73,33 @@ public class DatabaseHelper {
 		}
 	}
 	
-	//manually edit
-	public static void delete(String id) {
+	
+	public void query(String query) {
 		try {
 			Connection connection = getConnection();
-			PreparedStatement deleteItem = connection.prepareStatement("DELETE FROM " + tableName + " WHERE purpose='testpurpose'");
+			PreparedStatement queryStatement = connection.prepareStatement(query);
+			ResultSet rs = queryStatement.executeQuery();
+			ResultSetMetaData rsmd = rs.getMetaData();
+			int columnNumber = rsmd.getColumnCount();
+			
+			while(rs.next()) {
+				for(int i=1; i<=columnNumber; i++) {	
+					String columnValue = rs.getString(i);
+					System.out.print(rsmd.getColumnName(i) + ": " + columnValue);
+					System.out.print("\t\t");
+				}
+				System.out.println("");
+			}
+
+		}catch (Exception e) {
+			
+		}
+	}
+	//manually edit
+	public static void delete() {
+		try {
+			Connection connection = getConnection();
+			PreparedStatement deleteItem = connection.prepareStatement("DELETE FROM " + tableName);
 			int deleted = deleteItem.executeUpdate();
 			System.out.println("Deleted: " + deleted + " row(s)" );
 		}catch (Exception e) {
