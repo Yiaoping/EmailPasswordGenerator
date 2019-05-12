@@ -1,3 +1,4 @@
+package gen;
 import java.util.Scanner;
 
 public class ReadUserInput {
