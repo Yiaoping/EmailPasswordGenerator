@@ -4,12 +4,17 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.sql.*;
 import java.util.Properties;
+import javax.crypto.Cipher;
+import javax.crypto.spec.IvParameterSpec;
+import javax.crypto.spec.SecretKeySpec;
+import org.apache.commons.codec.binary.Base64;
 
 public class DatabaseHelper {
 	
-	public static void main (String args[]) {
-		delete();
-	}
+	private String key = "Bar12345Bar12345"; // 128 bit key
+    private String initVector = "RandomInitVector"; // 16 bytes IV
+	
+
 	
 	private static String tableName = "accounts";
 	public static void createTable() {
@@ -40,8 +45,9 @@ public class DatabaseHelper {
 	
 	public void insertEmailAndPass(String email, String password, String purpose) {
 		try {	
+			String encryptedPass = encrypt(key, initVector, password);
 			Connection connection = getConnection();																						//'email', 'password', 'purpose';			
-			PreparedStatement insertBoth = connection.prepareStatement("INSERT INTO " + tableName + " (email, password, purpose) VALUES ('" + email + "', '" + password + "', '" + purpose + "');"); 
+			PreparedStatement insertBoth = connection.prepareStatement("INSERT INTO " + tableName + " (email, password, purpose) VALUES ('" + email + "', '" + encryptedPass + "', '" + purpose + "');"); 
 			int inserted = insertBoth.executeUpdate();
 			System.out.println("Inserted email and password: " + inserted + " rows");
 		
@@ -52,14 +58,55 @@ public class DatabaseHelper {
 	
 	public void insertPassword(String password, String purpose) {
 		try {
+			String encryptedPassword = encrypt(key, initVector, password);
 			Connection connection = getConnection();
-			PreparedStatement insertOnePassword = connection.prepareStatement("INSERT INTO "+ tableName + " (password, purpose) VALUES ('" +password + "', '" + purpose + "');");
+			PreparedStatement insertOnePassword = connection.prepareStatement("INSERT INTO "+ tableName + " (password, purpose) VALUES ('" +encryptedPassword + "', '" + purpose + "');");
 			int inserted = insertOnePassword.executeUpdate();
 			System.out.println("Inserted password: " + inserted + " row(s)");
 		}catch (Exception e) {
 			e.printStackTrace();
 		}
 	}
+	
+	public static String encrypt(String key, String initVector, String value) {
+        try {
+            IvParameterSpec iv = new IvParameterSpec(initVector.getBytes("UTF-8"));
+            SecretKeySpec skeySpec = new SecretKeySpec(key.getBytes("UTF-8"), "AES");
+
+            Cipher cipher = Cipher.getInstance("AES/CBC/PKCS5PADDING");
+            cipher.init(Cipher.ENCRYPT_MODE, skeySpec, iv);
+
+            byte[] encrypted = cipher.doFinal(value.getBytes());
+            System.out.println("encrypted string: "
+                    + Base64.encodeBase64String(encrypted));
+
+            return Base64.encodeBase64String(encrypted);
+        } catch (Exception ex) {
+            ex.printStackTrace();
+        }
+
+        return null;
+    }
+	
+	public static String decrypt(String key, String initVector, String encrypted) {
+        try {
+            IvParameterSpec iv = new IvParameterSpec(initVector.getBytes("UTF-8"));
+            SecretKeySpec skeySpec = new SecretKeySpec(key.getBytes("UTF-8"), "AES");
+
+            Cipher cipher = Cipher.getInstance("AES/CBC/PKCS5PADDING");
+            cipher.init(Cipher.DECRYPT_MODE, skeySpec, iv);
+
+            byte[] original = cipher.doFinal(Base64.decodeBase64(encrypted));
+
+            return new String(original);
+        } catch (Exception ex) {
+            ex.printStackTrace();
+        }
+
+        return null;
+    }
+
+
 	
 
 	public void insertEmail(String email, String purpose) {
@@ -86,8 +133,20 @@ public class DatabaseHelper {
 			while(rs.next()) {
 				for(int i=1; i<=columnNumber; i++) {	
 					String columnValue = rs.getString(i);
-					System.out.print(rsmd.getColumnName(i) + ": " + columnValue);
-					System.out.print("\t\t");
+					if(rsmd.getColumnName(i).equals("password")) {
+						if(columnValue == null) {
+							System.out.print(rsmd.getColumnName(i) + ": " + columnValue);
+							System.out.print("\t\t");
+						}else {
+							String decryptedpassword = decrypt(key, initVector, columnValue);
+							System.out.print(rsmd.getColumnName(i) + ": " + decryptedpassword);
+							System.out.print("\t\t");
+						}
+						
+					}else {
+						System.out.print(rsmd.getColumnName(i) + ": " + columnValue);
+						System.out.print("\t\t");
+					}
 				}
 				System.out.println("");
 			}
