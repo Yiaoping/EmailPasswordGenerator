@@ -21,11 +21,17 @@ public class processDB {
 		db.insertEmailAndPass(email, password, purposeEmPass);
 	}
 	public static void processQuery() {
-		System.out.println("Enter in your query: ");
+		System.out.println("Enter in your keyword purpose associated with the information: ");
 		String inputQuery = sc.nextLine();
 		db.query(inputQuery);
 	}
-	
+	public static void testLogin() throws Exception {
+		System.out.println("Enter in your username/email: ");
+		String inputUser = sc.nextLine();
+		System.out.println("Enter in your password: ");
+		String inputPassword = sc.nextLine();
+		db.testWeakLogin(inputUser, inputPassword);
+	}
 	
 	
 

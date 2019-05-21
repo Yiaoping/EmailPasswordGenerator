@@ -14,6 +14,9 @@ public class DatabaseHelper {
 	private String key = "Bar12345Bar12345"; // 128 bit key
     private String initVector = "RandomInitVector"; // 16 bytes IV
 	
+    public static void main(String args[]) {
+    	createTable();
+    }
 
 	
 	private static String tableName = "accounts";
@@ -21,7 +24,7 @@ public class DatabaseHelper {
 		try {
 
 			Connection connection = getConnection();
-			PreparedStatement createTable = connection.prepareStatement("CREATE TABLE IF NOT EXISTS "+tableName+"(id INT NOT NULL AUTO_INCREMENT, email VARCHAR(50), password VARCHAR(16), purpose VARCHAR(255), PRIMARY KEY(id));");
+			PreparedStatement createTable = connection.prepareStatement("CREATE TABLE IF NOT EXISTS "+tableName+"(id INT NOT NULL AUTO_INCREMENT, email VARCHAR(50), password VARCHAR(255), purpose VARCHAR(255), PRIMARY KEY(id));");
 			createTable.execute();	
 			System.out.println("Completed");
 		} catch (Exception e) {
@@ -121,11 +124,86 @@ public class DatabaseHelper {
 		}
 	}
 	
+	public void testWeakLogin(String username, String password) throws Exception {
+			Connection connection = getConnection();
+			String dbQuery = "SELECT * FROM accounts WHERE email = '" + username + "' AND password = '" + password + "'"; 
+			System.out.println(dbQuery);
+			PreparedStatement queryStatement = connection.prepareStatement(dbQuery);
+			ResultSet rs = queryStatement.executeQuery();
+			ResultSetMetaData rsmd = rs.getMetaData();
+			int columnNumber = rsmd.getColumnCount();
+			
+			while(rs.next()) {
+				for(int i=1; i<=columnNumber; i++) {	
+					String columnValue = rs.getString(i);
+					if(rsmd.getColumnName(i).equals("password")) {
+						if(columnValue == null) {
+							System.out.print(rsmd.getColumnName(i) + ": " + columnValue);
+							System.out.print("\t\t");
+						}else {
+							String decryptedpassword = decrypt(key, initVector, columnValue);
+							System.out.print(rsmd.getColumnName(i) + ": " + decryptedpassword);
+							System.out.print("\t\t");
+						}
+						
+					}else {
+						System.out.print(rsmd.getColumnName(i) + ": " + columnValue);
+						System.out.print("\t\t");
+					}
+				}
+				System.out.println("");
+			}
+		
+	}
+	
+	public void weakQuery(String query) {
+		try {
+			Connection connection = getConnection();
+			String dbQuery = "SELECT * FROM accounts where purpose = '" + query + "'";
+			System.out.println(dbQuery);
+			PreparedStatement queryStatement = connection.prepareStatement(dbQuery);
+			//queryStatement.setString(1, query);
+			ResultSet rs = queryStatement.executeQuery();
+			ResultSetMetaData rsmd = rs.getMetaData();
+			int columnNumber = rsmd.getColumnCount();
+			
+			while(rs.next()) {
+				for(int i=1; i<=columnNumber; i++) {	
+					String columnValue = rs.getString(i);
+					if(rsmd.getColumnName(i).equals("password")) {
+						if(columnValue == null) {
+							System.out.print(rsmd.getColumnName(i) + ": " + columnValue);
+							System.out.print("\t\t");
+						}else {
+							String decryptedpassword = decrypt(key, initVector, columnValue);
+							System.out.print(rsmd.getColumnName(i) + ": " + decryptedpassword);
+							System.out.print("\t\t");
+						}
+						
+					}else {
+						System.out.print(rsmd.getColumnName(i) + ": " + columnValue);
+						System.out.print("\t\t");
+					}
+				}
+				System.out.println("");
+			}
+
+		}catch (Exception e) {
+			
+		}
+		
+	}
+	
 	
 	public void query(String query) {
 		try {
 			Connection connection = getConnection();
-			PreparedStatement queryStatement = connection.prepareStatement(query);
+			String dbQuery = "SELECT * FROM accounts where purpose = ?";
+			
+			PreparedStatement queryStatement = connection.prepareStatement(dbQuery);
+			
+			queryStatement.setString(1, query);
+			System.out.println(queryStatement);
 			ResultSet rs = queryStatement.executeQuery();
 			ResultSetMetaData rsmd = rs.getMetaData();
 			int columnNumber = rsmd.getColumnCount();

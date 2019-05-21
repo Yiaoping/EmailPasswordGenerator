@@ -7,7 +7,7 @@ public class Main {
 	
 	public static void main(String args[]) {
 
-		System.out.println("Please enter in a option: \n1) Email \n2) Password \n3) Email + Password \n4) Query \n0) Exit");
+		System.out.println("Please enter in a option: \n1) Email \n2) Password \n3) Email + Password \n4) Weak Query \n5) Login \n0) Exit");
 		Scanner sc = new Scanner(System.in);
 		ReadUserInput rui = new ReadUserInput();
 		try {
@@ -40,6 +40,10 @@ public class Main {
 			case 4:
 				//processes any user input query
 				processDB.processQuery();
+				break;
+				
+			case 5:
+				processDB.testLogin();
 				break;
 			default:
 				System.out.println("Enter in a digit only, try again");
